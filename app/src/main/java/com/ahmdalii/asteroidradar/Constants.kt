@@ -10,8 +10,8 @@ object Constants {
     const val DEFAULT_END_DATE_DAYS = 7
     const val EMPTY = ""
 
-    lateinit var BASE_URL: String
-    lateinit var API_KEY: String
+    var BASE_URL = "https://api.nasa.gov/"
+    var API_KEY = BuildConfig.API_KEY
 
     enum class FilterType {
         WEEK,
@@ -29,4 +29,3 @@ fun Fragment.setBaseActivityFragmentsToolbar(title: String, toolbar: Toolbar, te
         textView.text = title
     }
 }
-
