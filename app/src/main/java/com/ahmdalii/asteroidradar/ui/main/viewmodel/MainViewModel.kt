@@ -5,9 +5,9 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ahmdalii.asteroidradar.Constants
-import com.ahmdalii.asteroidradar.Constants.DEFAULT_END_DATE_DAYS
 import com.ahmdalii.asteroidradar.Constants.FilterType
 import com.ahmdalii.asteroidradar.Constants.FilterType.SAVED
+import com.ahmdalii.asteroidradar.Constants.createLocalAsteroidList
 import com.ahmdalii.asteroidradar.model.AsteroidEarth
 import com.ahmdalii.asteroidradar.ui.main.repo.HomeRepo
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -43,18 +43,27 @@ class MainViewModel(private val _repo: HomeRepo) : ViewModel() {
     val asteroidList: LiveData<List<AsteroidEarth>>
         get() = _asteroidList
 
-    private lateinit var startDate: String
-    private lateinit var endDate: String
-
-    init {
-        initData()
-    }
+    private lateinit var initiateDate: Pair<String, String>
 
     fun initData() {
-        initiateDate()
+        initiateDate = initiateDate()
         requestAsteroidImage()
         requestAsteroidData()
         filterLocalData(SAVED)
+    }
+
+    private fun initiateDate(): Pair<String, String> {
+        val day = Calendar.getInstance()
+
+        val date = SimpleDateFormat(Constants.API_QUERY_DATE_FORMAT, Locale.getDefault())
+        val startDate = date.format(day.time)
+
+        day.add(Calendar.DAY_OF_YEAR, Constants.DEFAULT_END_DATE_DAYS)
+
+        val last = day.time
+        val endDate = date.format(last)
+
+        return Pair(startDate, endDate)
     }
 
     private fun requestAsteroidImage() {
@@ -69,45 +78,14 @@ class MainViewModel(private val _repo: HomeRepo) : ViewModel() {
         }
     }
 
-    private fun initiateDate() {
-        val day = Calendar.getInstance()
-
-        val date = SimpleDateFormat(Constants.API_QUERY_DATE_FORMAT, Locale.getDefault())
-        startDate = date.format(day.time)
-
-        day.add(Calendar.DAY_OF_YEAR, DEFAULT_END_DATE_DAYS)
-
-        val last = day.time
-        endDate = date.format(last)
-    }
-
     private fun requestAsteroidData() {
         viewModelScope.launch {
             _progressLoadingMutableLiveData.value = true
-            val response = _repo.requestAsteroidData(startDate, endDate)
+            val response = _repo.requestAsteroidData()
 
             if (response.isSuccessful) {
-                val newLocalList = mutableListOf<AsteroidEarth>()
-                response.body()?.nearEarthObjects?.forEach { (key, value) ->
-                    value.forEach { asteroid ->
-                        newLocalList.add(
-                            AsteroidEarth().apply {
-                                id = asteroid.id
-                                name = asteroid.name
-                                absoluteMagnitudeH = asteroid.absoluteMagnitudeH
-                                estimatedDiameter =
-                                    asteroid.estimatedDiameter?.kilometers?.estimatedDiameterMax
-                                relativeVelocity =
-                                    asteroid.closeApproachData?.get(0)?.relativeVelocity?.kilometersPerSecond?.toDoubleOrNull()
-                                distanceFromEarth =
-                                    asteroid.closeApproachData?.get(0)?.missDistance?.astronomical?.toDoubleOrNull()
-                                isPotentiallyHazardousAsteroid =
-                                    asteroid.isPotentiallyHazardousAsteroid
-                                asteroidDate = key
-                            }
-                        )
-                    }
-                }
+                createLocalAsteroidList(response)
+                val newLocalList = createLocalAsteroidList(response)
                 _repo.insertAsteroidEarth(newLocalList)
                 _progressLoadingMutableLiveData.value = false
             } else {
@@ -118,7 +96,7 @@ class MainViewModel(private val _repo: HomeRepo) : ViewModel() {
     }
 
     fun filterLocalData(type: FilterType) {
-        _repo.getAsteroidEarth(type, startDate)?.observeForever {
+        _repo.getAsteroidEarth(type, initiateDate.first)?.observeForever {
             _asteroidList.value = it
         }
     }

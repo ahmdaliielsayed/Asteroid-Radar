@@ -13,11 +13,11 @@ interface AsteroidEarthDatabaseDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(item: List<AsteroidEarth>)
 
-    @Query("SELECT * FROM asteroid_table")
-    fun get(): LiveData<List<AsteroidEarth>>?
+    @Query("SELECT * FROM asteroid_table WHERE asteroidDate >= :startDate ORDER by asteroidDate ASC")
+    fun get(startDate: String): LiveData<List<AsteroidEarth>>?
 
-    @Query("SELECT * FROM asteroid_table  WHERE asteroidDate >= :week ORDER by asteroidDate ASC")
-    fun getAllDataByWeek(week: String): LiveData<List<AsteroidEarth>>?
+    @Query("SELECT * FROM asteroid_table WHERE asteroidDate > :startDate ORDER by asteroidDate ASC")
+    fun getAllDataByWeek(startDate: String): LiveData<List<AsteroidEarth>>?
 
     @Query("SELECT * FROM asteroid_table WHERE asteroidDate == :today ORDER by asteroidDate ASC")
     fun getAllDataByToday(today: String): LiveData<List<AsteroidEarth>>?

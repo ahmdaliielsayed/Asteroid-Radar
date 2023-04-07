@@ -22,8 +22,8 @@ class HomeRepoImpl private constructor(
         }
     }
 
-    override suspend fun requestAsteroidData(startDate: String, endDate: String): Response<AsteroidResponse> {
-        return remoteSource.requestAsteroidData(startDate, endDate)
+    override suspend fun requestAsteroidData(): Response<AsteroidResponse> {
+        return remoteSource.requestAsteroidData()
     }
 
     override suspend fun requestAsteroidImage(): Response<AsteroidImageResponse> {

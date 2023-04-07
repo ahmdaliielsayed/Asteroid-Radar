@@ -100,9 +100,9 @@
                         android:id="@+id/help_button"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:contentDescription="@string/information"
                         android:padding="16dp"
-                        app:srcCompat="@drawable/ic_help_circle"
-                        tools:ignore="ContentDescription" />
+                        app:srcCompat="@drawable/ic_help_circle" />
                 </LinearLayout>
 
                 <TextView

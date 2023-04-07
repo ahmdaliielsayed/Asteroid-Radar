@@ -9,7 +9,7 @@ import retrofit2.Response
 
 interface HomeRepo {
 
-    suspend fun requestAsteroidData(startDate: String, endDate: String): Response<AsteroidResponse>
+    suspend fun requestAsteroidData(): Response<AsteroidResponse>
 
     suspend fun requestAsteroidImage(): Response<AsteroidImageResponse>
 

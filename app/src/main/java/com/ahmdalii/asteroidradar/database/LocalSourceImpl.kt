@@ -47,7 +47,7 @@ class LocalSourceImpl(context: Context) : LocalSource {
         return when (type) {
             WEEK -> asteroidEarthDao?.getAllDataByWeek(startDate ?: EMPTY)
             TODAY -> asteroidEarthDao?.getAllDataByToday(startDate ?: EMPTY)
-            SAVED -> asteroidEarthDao?.get()
+            SAVED -> asteroidEarthDao?.get(startDate ?: EMPTY)
         }
     }
 }

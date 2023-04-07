@@ -13,6 +13,7 @@ import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
+import com.ahmdalii.asteroidradar.ConnectionLiveData
 import com.ahmdalii.asteroidradar.Constants.FilterType.SAVED
 import com.ahmdalii.asteroidradar.Constants.FilterType.TODAY
 import com.ahmdalii.asteroidradar.Constants.FilterType.WEEK
@@ -24,14 +25,18 @@ import com.ahmdalii.asteroidradar.setBaseActivityFragmentsToolbar
 import com.ahmdalii.asteroidradar.ui.main.repo.HomeRepoImpl
 import com.ahmdalii.asteroidradar.ui.main.viewmodel.MainViewModel
 import com.ahmdalii.asteroidradar.ui.main.viewmodel.MainViewModelFactory
+import com.google.android.material.snackbar.Snackbar
 
 class MainFragment : Fragment() {
 
+    private lateinit var myView: View
     private lateinit var viewModel: MainViewModel
 
     private lateinit var binding: FragmentMainBinding
 
     private lateinit var adapter: AsteroidEarthAdapter
+
+    private var isConnectedToNetwork: Boolean = false
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -42,20 +47,41 @@ class MainFragment : Fragment() {
 
         initiateViewModel()
         initiateAdapter()
+        listenerOnNetwork()
 
         binding.lifecycleOwner = this
         binding.viewModel = viewModel
 
         binding.homeToolbar.apply { setBaseActivityFragmentsToolbar(getString(R.string.app_name), toolbar, tvNameToolbar) }
 
-        /*setHasOptionsMenu(true)*/
         setMenu()
 
         binding.swipeToRefresh.setOnRefreshListener {
-            viewModel.initData()
+            if (isConnectedToNetwork) {
+                viewModel.initData()
+            }
         }
 
         return binding.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        myView = view
+    }
+
+    private fun listenerOnNetwork() {
+        ConnectionLiveData(requireContext()).observe(viewLifecycleOwner) { isOnline ->
+            isConnectedToNetwork = isOnline
+            if (isOnline) {
+                showShimmer()
+                viewModel.initData()
+            } else {
+                hideShimmer()
+                Snackbar.make(myView, getString(R.string.connection_lost), Snackbar.LENGTH_LONG).show()
+            }
+        }
     }
 
     private fun initiateViewModel() {
@@ -72,6 +98,7 @@ class MainFragment : Fragment() {
         }
 
         viewModel.asteroidList.observe(viewLifecycleOwner) { asteroidEarthList ->
+            hideShimmer()
             adapter.submitList(asteroidEarthList)
         }
 
@@ -79,13 +106,9 @@ class MainFragment : Fragment() {
             binding.apply {
                 swipeToRefresh.isRefreshing = false
                 if (loading == null || loading) {
-                    shimmer.visibility = View.VISIBLE
-                    shimmer.startShimmer()
-                    swipeToRefresh.visibility = View.GONE
+                    showShimmer()
                 } else {
-                    shimmer.visibility = View.GONE
-                    shimmer.stopShimmer()
-                    swipeToRefresh.visibility = View.VISIBLE
+                    hideShimmer()
                 }
             }
         }
@@ -98,6 +121,18 @@ class MainFragment : Fragment() {
                 viewModel.onAsteroidEarthNavigated()
             }
         }
+    }
+
+    private fun hideShimmer() {
+        binding.shimmer.visibility = View.GONE
+        binding.shimmer.stopShimmer()
+        binding.swipeToRefresh.visibility = View.VISIBLE
+    }
+
+    private fun showShimmer() {
+        binding.shimmer.visibility = View.VISIBLE
+        binding.shimmer.startShimmer()
+        binding.swipeToRefresh.visibility = View.GONE
     }
 
     private fun initiateAdapter() {
@@ -134,13 +169,4 @@ class MainFragment : Fragment() {
             viewLifecycleOwner
         )
     }
-
-    /*override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
-        inflater.inflate(R.menu.main_overflow_menu, menu)
-        super.onCreateOptionsMenu(menu, inflater)
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        return true
-    }*/
 }
