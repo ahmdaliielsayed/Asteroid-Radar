@@ -59,6 +59,8 @@ class MainFragment : Fragment() {
         binding.swipeToRefresh.setOnRefreshListener {
             if (isConnectedToNetwork) {
                 viewModel.initData()
+            } else {
+                binding.swipeToRefresh.isRefreshing = false
             }
         }
 
@@ -81,6 +83,10 @@ class MainFragment : Fragment() {
                 hideShimmer()
                 Snackbar.make(myView, getString(R.string.connection_lost), Snackbar.LENGTH_LONG).show()
             }
+        }
+
+        if (!ConnectionLiveData(requireContext()).isNetworkConnected()) {
+            viewModel.filterLocalData(SAVED)
         }
     }
 

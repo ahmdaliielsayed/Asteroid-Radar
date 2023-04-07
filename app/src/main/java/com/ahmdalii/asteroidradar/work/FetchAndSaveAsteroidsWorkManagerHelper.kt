@@ -28,7 +28,6 @@ class FetchAndSaveAsteroidsWorkManagerHelper(
         // do background work
         val response = apiInstance.requestAsteroidData()
         if (response.isSuccessful) {
-            Constants.createLocalAsteroidList(response)
             val newLocalList = Constants.createLocalAsteroidList(response)
             localSourceInstance.insertAsteroidEarth(newLocalList)
 

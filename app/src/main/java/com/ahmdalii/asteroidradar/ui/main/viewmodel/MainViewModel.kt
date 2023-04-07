@@ -43,10 +43,9 @@ class MainViewModel(private val _repo: HomeRepo) : ViewModel() {
     val asteroidList: LiveData<List<AsteroidEarth>>
         get() = _asteroidList
 
-    private lateinit var initiateDate: Pair<String, String>
+    private var initiateDate: Pair<String, String> = initiateDate()
 
     fun initData() {
-        initiateDate = initiateDate()
         requestAsteroidImage()
         requestAsteroidData()
         filterLocalData(SAVED)
