@@ -1,5 +1,8 @@
 package com.ahmdalii.asteroidradar.ui.main.view
 
+import android.content.Context
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.Menu
@@ -25,7 +28,6 @@ import com.ahmdalii.asteroidradar.setBaseActivityFragmentsToolbar
 import com.ahmdalii.asteroidradar.ui.main.repo.HomeRepoImpl
 import com.ahmdalii.asteroidradar.ui.main.viewmodel.MainViewModel
 import com.ahmdalii.asteroidradar.ui.main.viewmodel.MainViewModelFactory
-import com.google.android.material.snackbar.Snackbar
 
 class MainFragment : Fragment() {
 
@@ -74,6 +76,10 @@ class MainFragment : Fragment() {
     }
 
     private fun listenerOnNetwork() {
+        if (!isNetworkConnected()) {
+            viewModel.filterLocalData(SAVED)
+            Toast.makeText(requireContext(), getString(R.string.connection_lost), Toast.LENGTH_LONG).show()
+        }
         ConnectionLiveData(requireContext()).observe(viewLifecycleOwner) { isOnline ->
             isConnectedToNetwork = isOnline
             if (isOnline) {
@@ -81,12 +87,9 @@ class MainFragment : Fragment() {
                 viewModel.initData()
             } else {
                 hideShimmer()
-                Snackbar.make(myView, getString(R.string.connection_lost), Snackbar.LENGTH_LONG).show()
+                viewModel.filterLocalData(SAVED)
+                Toast.makeText(requireContext(), getString(R.string.connection_lost), Toast.LENGTH_LONG).show()
             }
-        }
-
-        if (!ConnectionLiveData(requireContext()).isNetworkConnected()) {
-            viewModel.filterLocalData(SAVED)
         }
     }
 
@@ -174,5 +177,16 @@ class MainFragment : Fragment() {
             },
             viewLifecycleOwner
         )
+    }
+
+    private fun isNetworkConnected(): Boolean {
+        val connectivityManager = context?.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val network = connectivityManager.activeNetwork
+        val capabilities = connectivityManager.getNetworkCapabilities(network)
+        return capabilities != null &&
+            (
+                capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) ||
+                    capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)
+                )
     }
 }
