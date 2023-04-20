@@ -35,7 +35,7 @@ fun ImageView.setBindImageWithProgressBar(url: String?, progress: View) {
     if (url != null && url.isNotEmpty()) {
         Picasso.get()
             .load(url)
-            .placeholder(R.drawable.place_holder)
+            .placeholder(R.drawable.loading_animation)
             .into(
                 this,
                 object : com.squareup.picasso.Callback {

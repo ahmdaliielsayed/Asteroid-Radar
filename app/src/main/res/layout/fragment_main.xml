@@ -42,6 +42,7 @@
 
             <ProgressBar
                 android:id="@+id/imgProgressBar"
+                android:visibility="gone"
                 android:layout_gravity="center"
                 android:layout_width="48dp"
                 android:layout_height="48dp"/>
